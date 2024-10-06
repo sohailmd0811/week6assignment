@@ -1,0 +1,60 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+#include <memory>
+
+using namespace std;
+
+struct HuffmanTreeNode {
+    char character;
+    int charFrequency;
+    shared_ptr<HuffmanTreeNode> leftSubtree, rightSubtree;
+    HuffmanTreeNode(char character, int charFrequency)
+        : character(character), charFrequency(charFrequency), leftSubtree(nullptr), rightSubtree(nullptr) {}
+};
+
+struct NodeComparator {
+    bool operator()(const shared_ptr<HuffmanTreeNode>& firstNode, const shared_ptr<HuffmanTreeNode>& secondNode) {
+        return firstNode->charFrequency > secondNode->charFrequency;
+    }
+};
+
+void traverseHuffmanTree(const shared_ptr<HuffmanTreeNode>& currentTreeNode, const string& codeSequence) {
+    if (!currentTreeNode) {
+        return;
+    }
+
+    if (currentTreeNode->character != '#') {
+        cout << currentTreeNode->character << ": " << codeSequence << "\n";
+    }
+    traverseHuffmanTree(currentTreeNode->leftSubtree, codeSequence + "0");
+    traverseHuffmanTree(currentTreeNode->rightSubtree, codeSequence + "1");
+}
+
+void createHuffmanTree(const vector<char>& inputCharacters, const vector<int>& inputFrequencies) {
+    priority_queue<shared_ptr<HuffmanTreeNode>, vector<shared_ptr<HuffmanTreeNode>>, NodeComparator> priorityQueue;
+    for (size_t i = 0; i < inputCharacters.size(); ++i) {
+        priorityQueue.push(make_shared<HuffmanTreeNode>(inputCharacters[i], inputFrequencies[i]));
+    }
+
+    while (priorityQueue.size() > 1) {
+        auto leastFrequentNode = priorityQueue.top(); priorityQueue.pop();
+        auto secondLeastFrequentNode = priorityQueue.top(); priorityQueue.pop();
+        auto parentNode = make_shared<HuffmanTreeNode>('#', leastFrequentNode->charFrequency + secondLeastFrequentNode->charFrequency);
+        parentNode->leftSubtree = leastFrequentNode;
+        parentNode->rightSubtree = secondLeastFrequentNode;
+        priorityQueue.push(parentNode);
+    }
+    traverseHuffmanTree(priorityQueue.top(), "");
+}
+
+int main() {
+    vector<char> inputCharacterSet = { 'a', 'b', 'c', 'd', 'e', 'f' };
+    vector<int> inputFrequencySet = { 5, 9, 12, 13, 16, 45 };
+    createHuffmanTree(inputCharacterSet, inputFrequencySet);
+
+    return 0;
+}
+
+
